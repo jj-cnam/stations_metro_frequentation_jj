@@ -1,5 +1,5 @@
-devoir_openpyxl
-Projet pour l'UE USID0F
+Stockage des données : <https://datalab.sspcloud.fr/s3/jacquemmoz/?profile=default>
+
 
 # Matériels et méthodes
 
@@ -48,7 +48,7 @@ jour	code_stif_trns	code_stif_res	code_stif_arret	libelle_arret	id_zdc	categorie
 2025-04-12	100	110	861	TRINITE	71355	NON DEFINI	73
 2025-04-12	100	110	862	TROCADERO	71285	Forfaits courts	12487
 
-Attention, lorsque NB_VALD est égal à 5 cela correspond à 5 validations ou moins (RGPD)
+**Attention, lorsque NB_VALD est égal à 5 cela correspond à 5 validations ou moins (RGPD)**
 
 ### Description des données
 
@@ -69,6 +69,35 @@ ATTENTION : le T4 est ici considéré comme un mode ferré
 - forfaits spéciaux ? prévalence ? Par date.
 - inconnu/anomalies ? prévalence ?
 
+- concaténation 110 (==> transporteur 100)
+- 365j : OK, continuité ok
+- 319 arrêts différents
+- code_stif_arret, ida : "doublons"
+	- valeurs aberrantes Mairie de St-Ouen, Maison-Blanche
+- catégorie_titre : 
+	- Forfaits courts
+	- Autres titres
+	- Contrat Solidarité Transport
+	- Forfait Navigo
+	- Imagine R
+	- Amethyste
+	- NON DEFINI
+	- Contrat Solidarite Transport
+- contrat SolidartiE SolidaritÉ
+- ANTONY ?
+
+# Indicateurs
+
+- 3 dimensions : stations (lignes), jours, titre
+- géographie ?
+
+- série temporelle :
+	- par jour : effet w-e, + été
+	- par semaine : été
+	- forfaits courts vs Navigo/ImaginR
+	
+- titre spécial 21/6 (début année : titres papier ?)
+
 
 # Discussion
 
@@ -78,6 +107,3 @@ ATTENTION : le T4 est ici considéré comme un mode ferré
 # Biblio
 
 [https://eu.ftp.opendatasoft.com/stif/Validations/Documentation/Donnees_de_validation.pdf]
-
-
-contact : [mailto:julien.jacquemmoz.auditeur@lecnam.net?subject=devoir_openpyxl]
