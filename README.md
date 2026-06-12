@@ -1,83 +1,76 @@
-Requirement : openpyxl==3.1.3
+---
+title: Tableau de bord de la fréquentation des stations du métro parisien en 2025
+author: Julien Jacquemmoz
+---
 
-> Données nettoyées : https://minio.lab.sspcloud.fr/jacquemmoz/partage/data_traitee.xlsx
+> Requirement : openpyxl==3.1.3
 
-Données originelles :
-- https://minio.lab.sspcloud.fr/jacquemmoz/partage/validations-reseau-ferre-nombre-validations-par-jour-1er-trimestre.xlsx
-- https://minio.lab.sspcloud.fr/jacquemmoz/partage/validations-reseau-ferre-nombre-validations-par-jour-2eme-trimestre.xlsx
-- https://minio.lab.sspcloud.fr/jacquemmoz/partage/validations-reseau-ferre-nombre-validations-par-jour-3eme-trimestre.xlsx
-- https://minio.lab.sspcloud.fr/jacquemmoz/partage/validations-reseau-ferre-nombre-validations-par-jour-4eme-trimestre.xlsx
+> tree
 
->Dossier 'maquettes' : évolution des maquettes durant l'avacement du projet, au format *excalidraw* et *png*.
+L'objectif est d'étudier la fréquentation des stations de métro du métro parisien, à partir de données fournies par Île-de-France Mobilités [https://prim.iledefrance-mobilites.fr/fr], en les représentant sur un tableau de bord.
 
+- Quelle est l'évolution selon le temps ?
+- Quelles sont les différences de fréquentation entre les stations ?
 
-# Matériels et méthodes
+On va s'appuyer sur les **données de validation sur le réseau ferré** : elles comptent pour chaque *station* (appelée *arrêt*) le nombre de valiations par jour, correspondant donc aux **entrées dans la station**, catégorisées par *type de titre de transport*.
+Limites :
+- pas de données sur les tickets sur support papier (support en extinction),
+- évidemment pas de données sur les voyageurs n'ayant pas pu valider ou fraudeurs,
+- pour les stations ayant eu entre 1 et 5 validations journalières pour un type de titre donnée, les données indiquent "MOINS DE 5".
 
-## Source de données
+# Données sources
+## Jeu de données
 
 [https://prim.iledefrance-mobilites.fr/]
 Validations sur le réseau ferré en 2025
 "Ce jeu de données présente le nombre de validations des voyageurs par jour par arrêt et par titre de transport sur le réseau ferré."
-Licence : Licence ODbL Version Française https://spdx.org/licenses/ODbL-1.0.html#licenseText (spécifique BDD)
+Licence : Licence ODbL Version Française [https://spdx.org/licenses/ODbL-1.0.html#licenseText] (spécifique aux bases de données)
 Producteur : Île-de-France Mobilités
-4 trimestres ==> 4 fichiers à concaténer
+Documentation : [https://eu.ftp.opendatasoft.com/stif/Validations/Documentation/Donnees_de_validation.pdf]
+La masse fait qu'elles sont séparées en quatre fichiers de données trimestrielles :
 
-### 1er trim
+- 1er trimestre [https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-1er-trimestre]
+	- Dernier traitement (données) : 23 juillet 2025 9:44
+	- Dernier traitement (métadonnées) : 29 décembre 2025 11:57
+- 2e trimestre [https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-2eme-trimestre]
+	- Dernier traitement (données) : 28 août 2025 14:20
+	- Dernier traitement (métadonnées) : 29 décembre 2025 11:57
+- 3e trimestre [https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-3eme-trimestre]	
+	- Dernier traitement (données) : 27 novembre 2025 11:12
+	- Dernier traitement (métadonnées) : 29 décembre 2025 11:56
+ -4e trimestre [https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-4eme-trimestre]
+	- Dernier traitement (données) : 11 mars 2026 9:44
+	- Dernier traitement (métadonnées) : 11 mars 2026 9:44
 
-[https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-1er-trimestre]
-Dernier traitement (données) : 23 juillet 2025 9:44
-Dernier traitement (métadonnées) : 29 décembre 2025 11:57
+## Dictionnaire des données
 
-### 2e trim
+| VARIABLE        | FORMAT            | DEFINITION                                          |
+| --------------- | ----------------- | --------------------------------------------------- |
+| JOUR 	          | Date (01/01/2015) | Jour d’exploitation (de 04:00 à 03:59 le lendemain) |
+| COD_STIF_TRNS   | Numérique         | Code Stif du transporteur							|
+| COD_STIF_RES    | Numérique 		  | Code Stif du réseau									|
+| COD_STIF_ARRET  | Numérique 		  | Code Stif de l’arrêt/station						|
+| LIBELLE_ARRET   | Caractère 		  | Libellé de l’arrêt/station							|
+| ID_REFA_LDA     | Caractère         | Identifiant arrêt référentiel STIF					|
+| CATEGORIE_TITRE | Caractère         | Titre de transport									|
+| NB_VALD         | Numérique         | Nombre de validations (en entrée sur le réseau)		|
 
-[https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-2eme-trimestre]
-Dernier traitement (données) : 28 août 2025 14:20
-Dernier traitement (métadonnées) : 29 décembre 2025 11:57
+On s'intéresse à la *RATP*, COD_STIF_TRNS 100, réseau métro, COD_STIF_RES 110.
 
-### 3e trim
+## Nettoyage mise en forme et exploration des données
 
-[https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-3eme-trimestre]
-Dernier traitement (données) : 27 novembre 2025 11:12
-Dernier traitement (métadonnées) : 29 décembre 2025 11:56
+Ces opérations sont décrites et exécutables dans le notebook `exploration.ipynb` (dossier `notebooks`).
 
-### 4e trim
-[https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-4eme-trimestre]
-Dernier traitement (données) : 11 mars 2026 9:44
-Dernier traitement (métadonnées) : 11 mars 2026 9:44
+>Le jeu de données mise en forme est stocké dans le dépôt [https://minio.lab.sspcloud.fr/jacquemmoz/partage/data_traitee.xlsx].
 
+# Traitements envisagés et maquette
 
-### Dictionnaire des données
-
-> Voir Word.
-> Générer depuis le json.
-
-jour : date : date de la Validation
+>Dossier 'maquettes' : évolution des maquettes durant l'avacement du projet, au format *excalidraw* et *png*.
 
 
-jour	code_stif_trns	code_stif_res	code_stif_arret	libelle_arret	id_zdc	categorie_titre	nb_vald
-2025-04-12	100	110	861	TRINITE	71355	NON DEFINI	73
-2025-04-12	100	110	862	TROCADERO	71285	Forfaits courts	12487
 
-**Attention, lorsque NB_VALD est égal à 5 cela correspond à 5 validations ou moins (RGPD)**
-
-### Description des données
-
-725 arrêts ferrés (RER, métro, Transilien)
-
-Dans le cas du réseau ferré, les validations sont rattachées à
-une station (et non à une ligne). En effet, la validation se fait à
-l’entrée de la station, indépendamment de la ligne précise
-empruntée. De plus, une fois entré dans le réseau métro ou
-RER, l’usager n’a en général pas besoin de revalider lorsqu’il
-change de ligne.
-
-ATTENTION : le T4 est ici considéré comme un mode ferré
 
 ### Traitements
-
-- agréger titres "sociaux" ?
-- forfaits spéciaux ? prévalence ? Par date.
-- inconnu/anomalies ? prévalence ?
 
 - concaténation 110 (==> transporteur 100)
 - 365j : OK, continuité ok
@@ -98,6 +91,10 @@ ATTENTION : le T4 est ici considéré comme un mode ferré
 
 # Indicateurs
 
+- agréger titres "sociaux" ?
+- forfaits spéciaux ? prévalence ? Par date.
+- inconnu/anomalies ? prévalence ?
+
 - 3 dimensions : stations (lignes), jours, titre
 - géographie ?
 
@@ -107,13 +104,3 @@ ATTENTION : le T4 est ici considéré comme un mode ferré
 	- forfaits courts vs Navigo/ImaginR
 	
 - titre spécial 21/6 (début année : titres papier ?)
-
-
-# Discussion
-
-- tickets cartonnées pas pris en compte (+ pas de portique, travaux, fraude)
-
-
-# Biblio
-
-[https://eu.ftp.opendatasoft.com/stif/Validations/Documentation/Donnees_de_validation.pdf]
