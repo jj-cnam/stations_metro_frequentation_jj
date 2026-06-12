@@ -1,0 +1,19 @@
+[project]
+name = "metro"
+version = "0.1.0"
+description = "Tableau de bor sur la fréquentation des stations du métro parisien"
+authors = [
+    { name = "JJ"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "openpyxl==3.1.3",
+]
+
+[project.scripts]
+metro = "metro.main:main"
+
+[build-system]
+requires = ["uv_build>=0.11.17,<0.12.0"]
+build-backend = "uv_build"
