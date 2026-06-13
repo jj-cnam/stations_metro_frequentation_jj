@@ -5,6 +5,7 @@ from openpyxl import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.worksheet.formula import ArrayFormula
 from openpyxl.utils import get_column_letter
+from openpyxl.cell.cell import Cell
 
 
 def unique(ensemble: tuple | list, suppr_entete=True) -> list:     # type de plage à mettre
@@ -14,7 +15,7 @@ def unique(ensemble: tuple | list, suppr_entete=True) -> list:     # type de pla
     :param suppr_entete: True pour supprimer la première valeur de l'ensemble
     """
     ensemble = list(ensemble)
-    if suppr_entete: 
+    if suppr_entete:
         ensemble.pop(0)
     uniques = set()
     for element in ensemble:
@@ -22,6 +23,27 @@ def unique(ensemble: tuple | list, suppr_entete=True) -> list:     # type de pla
     uniques = list(uniques)
     uniques.sort()
     return uniques
+
+
+def unique2(feuille: Worksheet, plage: str, cellule_cible: str) -> ArrayFormula:
+    """
+    retourne une ArrayFormula de la formule "=UNIQUE()" avec la plage de sortie correspondante calculée
+    :param feuille: feuille en cours
+    :param plage: plage sur laquelle appliquer la formule
+    :param cellule_cible: plage où insérer la formule
+    :return: Arrayformula(plage dynamique calculée, "=UNIQUE(plage)")
+    """
+    uniques = set()
+    for element in feuille[plage]:
+        if type(element) is Cell:   # si la plage est une ligne ou une colonne entière
+            uniques.add(element.value)
+        else:
+            for cellule in element:
+                uniques.add(cellule.value)
+    print(uniques)
+    return ArrayFormula(
+        cellule_cible + ":" + feuille[cellule_cible].offset(len(uniques)-1, 0).coordinate,
+        "=UNIQUE(" + plage + ")")
 
 
 def topflop(feuille: Worksheet, debut:int) -> None:
@@ -37,7 +59,7 @@ def topflop(feuille: Worksheet, debut:int) -> None:
         feuille.cell(j, debut).number_format = "0.00%"
     feuille.cell(1, debut+1).value = "flop"
     for j in range(12, 22):
-        feuille.cell(j, debut+1).value =  "=" + get_column_letter(debut-1) + str(j)
+        feuille.cell(j, debut+1).value = "=" + get_column_letter(debut-1) + str(j)
         feuille.cell(j, debut+1).number_format = "0.00%"
 
 
