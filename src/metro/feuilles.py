@@ -14,7 +14,7 @@ def unique(ensemble: tuple | list, suppr_entete=True) -> list:     # type de pla
     :param suppr_entete: True pour supprimer la première valeur de l'ensemble
     """
     ensemble = list(ensemble)
-    if suppr_entete: 
+    if suppr_entete:
         ensemble.pop(0)
     uniques = set()
     for element in ensemble:
