@@ -147,7 +147,7 @@ Elle contient une colonne présentant l'ensemble des stations de métro, suivi d
 
 ### Feuille `jours`
 
-*Cette feuille a été calculée lors du prototypage du tableau de bord, avant que l'on décide d'une granulométrie hebdomadaire. Elle est maintenue dans le classeur pour de futuregit branchs évolutions. Elle permet également d'illustrer la logique des calculs dans le classeur.*
+*Cette feuille a été calculée lors du prototypage du tableau de bord, avant que l'on décide d'une granulométrie hebdomadaire. Elle est maintenue dans le classeur pour de futures évolutions. Elle permet également d'illustrer la logique des calculs dans le classeur.*
 
 Cette feuille pivote des données de `DATA` selon la date des jours, en ajoutant les nombres de validations, en utilisant un ensemble de formule de la forme :
 
