@@ -3,16 +3,52 @@ title: Tableau de bord de la fréquentation des stations du métro parisien en 2
 author: Julien Jacquemmoz
 ---
 
-> Requirement : openpyxl==3.1.3
+***
+Utilisation : **`uv run metro`**
 
-> tree
+> Prérequis : openpyxl==3.1.3, géré par uv.
 
-L'objectif est d'étudier la fréquentation des stations de métro du métro parisien, à partir de données fournies par Île-de-France Mobilités [https://prim.iledefrance-mobilites.fr/fr], en les représentant sur un tableau de bord.
+```
+usage: main.py [-h] [-i INPUT | -u URL] [-o OUTPUT]
+
+Génère le tableau de bord de la fréquantation des stations de métro parisien
+
+options:
+  -h, --help           show this help message and exit
+  -i, --input INPUT    chemin du fichier d'entrée (default: None)
+  -u, --url URL        url du fichier d'entrée (default: https://minio.lab.sspcloud.fr/jacquemmoz/partage/data_traitee.xlsx)
+  -o, --output OUTPUT  chemin du fichier de sortie (default: sortie.xlsx)
+
+Structure :
+
+stations_metro_frequentation_jj
+├── .gitignore
+├── img								# images de ce README
+├── notebooks						# notebook d'exploration et de génération
+│   └── exploration.ipynb			# du jeu de données (data_traitee.xlsx)
+├── pyproject.toml
+├── .python-version
+├── README.md						# Ce README
+├── src/metro
+│   ├── feuilles.py					# génération des feuilles de calcul
+│   ├── forme.py					# élements de mise en forme des graphes
+│   ├── graphes1.py					# génération de la 1e page de graphes
+│   ├── graphes2.py					# génération de la 2e page de graphes
+│   ├── __init__.py
+│   └── main.py						# point d'entrée/sortie
+├── TODO.md							# perspectives d'évolution
+└── uv.lock
+```
+
+Le fichier de sortie est donc par défaut `sortie.xlsx`, placé dans le répertoire courant. (Il est généré par défaut à partir des données d'un dépôt S3.)
+***
+
+L'objectif est d'étudier la fréquentation des stations du métro parisien, à partir de données fournies par Île-de-France Mobilités [https://prim.iledefrance-mobilites.fr/fr], en les représentant sur un tableau de bord.
 
 - Quelle est l'évolution selon le temps ?
 - Quelles sont les différences de fréquentation entre les stations ?
 
-On va s'appuyer sur les **données de validation sur le réseau ferré** : elles comptent pour chaque *station* (appelée *arrêt*) le nombre de valiations par jour, correspondant donc aux **entrées dans la station**, catégorisées par *type de titre de transport*.
+On va s'appuyer sur les **données de validation sur le réseau ferré** : elles comptent pour chaque *station* (appelée *arrêt*) le nombre de validations par jour, correspondant donc aux **entrées dans la station**, catégorisées par *type de titre de transport*.
 Limites :
 - pas de données sur les tickets sur support papier (support en extinction),
 - évidemment pas de données sur les voyageurs n'ayant pas pu valider ou fraudeurs,
@@ -21,26 +57,26 @@ Limites :
 # Données sources
 ## Jeu de données
 
-[https://prim.iledefrance-mobilites.fr/]
-Validations sur le réseau ferré en 2025
-"Ce jeu de données présente le nombre de validations des voyageurs par jour par arrêt et par titre de transport sur le réseau ferré."
-Licence : Licence ODbL Version Française [https://spdx.org/licenses/ODbL-1.0.html#licenseText] (spécifique aux bases de données)
-Producteur : Île-de-France Mobilités
-Documentation : [https://eu.ftp.opendatasoft.com/stif/Validations/Documentation/Donnees_de_validation.pdf]
-La masse fait qu'elles sont séparées en quatre fichiers de données trimestrielles :
+Île-de-France Mobilités : *Validations sur le réseau ferré en 2025*
 
-- 1er trimestre [https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-1er-trimestre]
-	- Dernier traitement (données) : 23 juillet 2025 9:44
-	- Dernier traitement (métadonnées) : 29 décembre 2025 11:57
-- 2e trimestre [https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-2eme-trimestre]
-	- Dernier traitement (données) : 28 août 2025 14:20
-	- Dernier traitement (métadonnées) : 29 décembre 2025 11:57
-- 3e trimestre [https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-3eme-trimestre]	
-	- Dernier traitement (données) : 27 novembre 2025 11:12
-	- Dernier traitement (métadonnées) : 29 décembre 2025 11:56
- -4e trimestre [https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-4eme-trimestre]
-	- Dernier traitement (données) : 11 mars 2026 9:44
-	- Dernier traitement (métadonnées) : 11 mars 2026 9:44
+> "Ce jeu de données présente le nombre de validations des voyageurs par jour par arrêt et par titre de transport sur le réseau ferré."
+
+- Licence : Licence ODbL Version Française [https://spdx.org/licenses/ODbL-1.0.html] (spécifique aux bases de données)
+- Producteur : Île-de-France Mobilités
+- Documentation : [https://eu.ftp.opendatasoft.com/stif/Validations/Documentation/Donnees_de_validation.pdf]
+La masse fait qu'elles sont séparées en quatre fichiers de données trimestrielles :
+	- 1er trimestre [https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-1er-trimestre]
+		- Dernier traitement (données) : 23 juillet 2025 9:44
+		- Dernier traitement (métadonnées) : 29 décembre 2025 11:57
+	- 2e trimestre [https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-2eme-trimestre]
+		- Dernier traitement (données) : 28 août 2025 14:20
+		- Dernier traitement (métadonnées) : 29 décembre 2025 11:57
+	- 3e trimestre [https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-3eme-trimestre]
+		- Dernier traitement (données) : 27 novembre 2025 11:12
+		- Dernier traitement (métadonnées) : 29 décembre 2025 11:56
+ 	- 4e trimestre [https://prim.iledefrance-mobilites.fr/fr/jeux-de-donnees/validations-reseau-ferre-nombre-validations-par-jour-4eme-trimestre]
+		- Dernier traitement (données) : 11 mars 2026 9:44
+		- Dernier traitement (métadonnées) : 11 mars 2026 9:44
 
 ## Dictionnaire des données
 
@@ -65,7 +101,7 @@ Ces opérations sont décrites et exécutables dans le notebook `exploration.ipy
 
 # Traitements envisagés et maquette
 
-La seule donnée quantitative est la nombre de validations.
+La seule donnée quantitative est le nombre de validations.
 Les variables catégorielles sont : date, station et categorie titre. La date est par ailleurs une variable ordinale.
 On peut donc aisément envisager de stratifier le **nombre de validations par titre de transport** (barres empilées) **selon la date ou la station**.
 
@@ -88,28 +124,26 @@ Les simulations montrent, logiquement, la baisse du nombre de validations les we
 
 Ce fait logique n'apporte aucune information, par ailleurs la représentation des données avec une granulométrie quotidienne génère un graphe trop chargé. On retiendra donc une **granulométrie hebdomadaire**, qui résoudra ces deux problèmes.
 
-Le nombre important de stations (319) génère également un graphe trop chargé. On présentera donc un **échantillon de 50 stations tirées *dynamiquement* au sort**.
+Le nombre important de stations (318) génère également un graphe trop chargé. On présentera donc un **échantillon de 50 stations tirées *dynamiquement* au sort**.
 
-**Enfin, on relève des différences de répartition des types de titres de transport selon les stations, que nous devons mettre en évidence sur le tableau de bord.** Nous étudierons les **titres de transports attribus sur critères sociaux (agrégeant "Amethyste" et "Contrat Solidarité Transport")** et les **Forfaits courts**.
+**Enfin, on relève des différences de répartition des types de titres de transport selon les stations, que nous devrons mettre en évidence sur le tableau de bord.** Nous étudierons les **titres de transports attribués sur critères sociaux (agrégeant "Amethyste" et "Contrat Solidarité Transport")** et les **Forfaits courts**.
 
 > Titres de transports attribus sur critères sociaux = Amethyste + Contrat Solidarité Transport
 
-La fréquentation temporelle sera par défaut présentée pour le total des stations, une liste déroulante permettra de sélectionner une station précise.
+La fréquentation temporelle sera par défaut présentée pour le total des stations, une **liste déroulante permettra de sélectionner une station précise**.
 
 !["Maquette définitive du tableau de bord](img/maquette3.png)
 *Maquette définitive du tableau de bord*
 
 # Mise en oeuvre effective des traitements
 
-Le fichier Excel calculant et affichant le tableau de bord est généré par des scripts Python, à partit des données traitées `data_traitee.xlsx` générées par le notebook `exploration.ipynb`.
+Le fichier Excel calculant et affichant le tableau de bord est généré par des scripts Python, à partir des données traitées `data_traitee.xlsx` générées par le notebook `exploration.ipynb`.
 
 ## Organisation des scripts Python
 
-> **`uv run metro`**
+Les données traitées sont passées au script `main.py`, qui les recopie dans la feuille `DATA` du classeur de sortie, et orchestre sa création. Il appelle successivement les scripts `feuilles.py`, `graphes1.py` et `graphes2.py`, responsables respectivement de la génération des feuilles de calcul et des deux feuilles constituant le tableau de bord. Le script `forme.py` contient les éléments de mise en forme des graphes, afin de *séparer, dans le projet, la forme du contenu*. Le tableau de bord est par défaut généré sous forme d'un fchier `sortie.xlsx` dans le répertire courant.
 
-Les données traitées sont passées au script `main.py`, qui les recopie dans la feuille `DATA` du classeur de sortie, et orchestre sa création. Il appelle successivement les scripts `feuilles.py`, `graphes1.py` et `graphes2.py`, responsables respectivement de la génération des feuilles de calcul et des deux feuilles constituant le tableau de bord. Le script `forme.py` contient les éléments de mise en forme des graphes, afin de séparer, dans le projet, la forme du contenu. Le tableau de bord est généré sous forme d'un fchier `sortie.xlsx`.
-
-**Les différents fichiers contiennent des commentaires explicatifs, et les focntions appelées sont dotées de *docstrings*.**
+**Les différents fichiers contiennent des commentaires explicatifs, et les fonctions appelées sont dotées de *docstrings*.**
 
 ## Organisation du classeur contenant le tableau de bord
 
@@ -121,7 +155,7 @@ Elle correspond à la copie des données traitées, auxquelles sont ajoutées un
 
 ### Feuille `modalites`
 
-Elle contient une colonne présentant l'ensemble des stations de métro, suivi de la valeur "toutes". Elle sert de référence à la liste déroulante de sélection du nom de station dans la feuille `Graphe1`.
+Elle contient une colonne présentant l'ensemble des stations de métro, suivie de la valeur "toutes". Elle sert de référence à la liste déroulante de sélection du nom de station dans la feuille `Graphes1`.
 
 *Elle contient également la liste des différents types de titres de transport, qui n'est pas utilisée mais est présente pour permettre de futures évolutions du tableau de bord.*
 
@@ -131,16 +165,16 @@ Elle contient une colonne présentant l'ensemble des stations de métro, suivi d
 
 *Cette feuille a été calculée lors du prototypage du tableau de bord, avant que l'on décide d'une granulométrie hebdomadaire. Elle est maintenue dans le classeur pour de futures évolutions. Elle permet également d'illustrer la logique des calculs dans le classeur.*
 
-Cette feuille pivote des données de `DATA` selon la date des jours, en ajoutant les nombres de validations, en utilisant un ensemble de formule de la forme :
+Cette feuille pivote des données de la feuille `DATA` selon la date des jours, en ajoutant les nombres de validations, en utilisant un ensemble de formules de la forme :
 
 `=SOMME.SI.ENS(DATA!$D:$D;DATA!$A:$A;$A2;DATA!$B:$B;SI(station="toutes";"*";station);DATA!$C:$C;B$1)`
 
 Par exemple pour la cellule B2 :
 
 - somme selon la colonne $D:$D `nb_vald`,
-- pour la date égale à la valeur contenue dans l'entête de ligne (dans l'exemple cellule $A2),
-- pour la station indiquée dans la valeur de la cellule nommée 'station' (cellule avec une liste déroulante présente dans la feuille `Graphes1`), en traitant le cas où l'affichage de toutes les stations est demandé, 
-- pour le type de titre de transport égal à la valeur contenue dans l'entête de la colonne (dans l'exemple cellule B$1).
+- pour la date égale à la valeur contenue dans l'entête de ligne (dans cet exemple cellule $A2),
+- pour la station indiquée dans la valeur de la cellule nommée 'station' (cellule avec une liste déroulante présente dans la feuille `Graphes1`), en traitant le cas où l'affichage de toutes les stations est demandé `SI(station="toutes";"*";station)`, 
+- pour le type de titre de transport égal à la valeur contenue dans l'entête de la colonne (dans cet exemple cellule B$1).
 
 ### Feuille `semaines`
 
@@ -155,16 +189,16 @@ Ici le pivot est fait non plus selon une date, mais selon la station (`libelle_a
 `=SOMME.SI.ENS(DATA!$D:$D;DATA!$B:$B;$A2;DATA!$C:$C;B$1)`
 
 Des colonnes supplémentaires sont calculées :
-- `aleatoire=ALEA()` : valeur aléatoire qui servira pour l'écantillonnage dans l'onglet `echantillon`,
+- `aleatoire=ALEA()` : valeur aléatoire qui servira pour l'écantillonnage dans la feuille `echantillon` ;
 - `prop_social=(B2+D2)/SOMME(B2:H2)` : proportion de titres de transports "sociaux" ;
-- `prop_court==(F2+D2)/SOMME(B2:H2)` : proportion de titres de transport courts.
+- `prop_court=(F2+D2)/SOMME(B2:H2)` : proportion de titres de transport courts.
 
-Ces deux dernières colonnes permmettent de générer les plages qui permettront la représentation des stations les plus et les moins fréquentées par les détenteurs de titres de transport "sociaux" et courts. Ces plages sont matérialisées par l'aggrégation des lignes correspondant aux 10 plus fortes et plus faibles valeurs des colonnes de proportions, grâce aux formules :
+Ces deux dernières colonnes permettent de générer les plages qui permettront la représentation des stations les plus et les moins fréquentées par les détenteurs de titres de transport "sociaux" et courts. Ces plages sont matérialisées par l'aggrégation des lignes correspondant aux 10 plus fortes et plus faibles valeurs des colonnes de proportions, grâce aux formules :
 
 `=PRENDRE(TRIER($A$2:$J$319;10;-1;);10)` et
 `=PRENDRE(TRIER($A$2:$J$319;10;-1;);-10)`
 
-Sont ajoutées à ces plages des colonnes `top` et `flop` reprenant les valeurs de la colonne proportion qui appartiendront respectivement aux séries des stations les plus et les moins fréquentées.
+Sont ajoutées à ces plages des colonnes `top` et `flop` reprenant les valeurs de la colonne proportion correspondante qui appartiendront respectivement aux séries des stations les plus et les moins fréquentées.
 
 ### Feuille `echantillon`
 
@@ -172,8 +206,6 @@ Cette feuille contient un tirage aléatoire des fréquentations de 50 stations i
 
 `=PRENDRE(TRIERPAR(stations!A:H;stations!I:I);50)`
 
-# Perpectives
+# Perpectives d'évolution
 
-- forfaits courts vs Navigo/ImaginR
-	
-- titre spécial 21/6 (début année : titres papier ?)
+Voir `TODO.md`.

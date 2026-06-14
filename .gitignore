@@ -1,5 +1,7 @@
 # Python-generated files
 __pycache__/
+src/metro/__pycache__/
+.ruff_cache/
 *.py[oc]
 build/
 dist/
