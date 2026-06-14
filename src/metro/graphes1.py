@@ -9,7 +9,9 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from metro.forme import zone_graph, TEXTE, DROITE
 
 
-def cellule_selection(feuille: Worksheet, cellule: str, nomdef:str, plage:str) -> None:
+def cellule_selection(
+    feuille: Worksheet, cellule: str, nomdef: str, plage: str
+) -> None:
     """
     Procédure qui créée une cellule avec un nom défini, qui présente une liste déroulante des choix autorisés.
     Cette cellule sera celle sélectionée par défaut à l'ouverture de la feuille.
@@ -18,16 +20,24 @@ def cellule_selection(feuille: Worksheet, cellule: str, nomdef:str, plage:str) -
     :param nomdef: nom défini
     :param plage: plage des valeurs autorisées
     """
-    feuille.parent.defined_names.add(DefinedName(nomdef, attr_text=feuille.title + "!" + cellule))
-    liste_val = DataValidation(type="list", formula1=plage, allowBlank=False, showDropDown=False)
+    feuille.parent.defined_names.add(
+        DefinedName(nomdef, attr_text=feuille.title + "!" + cellule)
+    )
+    liste_val = DataValidation(
+        type="list", formula1=plage, allowBlank=False, showDropDown=False
+    )
     feuille.add_data_validation(liste_val)
     liste_val.add(feuille[cellule])
     feuille.sheet_view.selection[0].activeCell = cellule
     feuille.sheet_view.selection[0].sqref = cellule
 
 
-def bar_vertic_graph(valeurs:Reference, categories:Reference,
-                     pourcent:bool = False, titreX:str|None = None) -> BarChart:
+def bar_vertic_graph(
+    valeurs: Reference,
+    categories: Reference,
+    pourcent: bool = False,
+    titreX: str | None = None,
+) -> BarChart:
     """
     Trace un diagramme en barres verticales évec empilement
     :param valeurs: valeurs de l'axe vertical
@@ -45,9 +55,9 @@ def bar_vertic_graph(valeurs:Reference, categories:Reference,
     # Titre dynamique : pas possible en OpenPyxl
     # Calcul auto de la taille : pas possible en OpenPyxl
     retour.width = 35
-    retour.height= 12
+    retour.height = 12
     retour.x_axis.delete = False
-    if titreX: 
+    if titreX:
         retour.x_axis.title = titreX
     retour.y_axis.delete = False
     retour.legend.position = "t"
@@ -68,10 +78,16 @@ def graphes1(classeur: Workbook) -> None:
     feuille["F2"].value = "Sélectionner la station :"
     feuille["F2"].font = TEXTE
     feuille["F2"].alignment = DROITE
-    feuille["G2"].font = TEXTE     # cellule de sélection ('station')
+    feuille["G2"].font = TEXTE  # cellule de sélection ('station')
     feuille.merge_cells("G2:I2")
-    zone_graph(feuille, "Répartition des types de titres de transport selon les stations", ligne1=28)
-    feuille["F29"].value = "Échantillon aléatoire de 50 stations. Recalculer le classeur [F9] pour renouveler l'échantillon."
+    zone_graph(
+        feuille,
+        "Répartition des types de titres de transport selon les stations",
+        ligne1=28,
+    )
+    feuille[
+        "F29"
+    ].value = "Échantillon aléatoire de 50 stations. Recalculer le classeur [F9] pour renouveler l'échantillon."
     feuille["F29"].font = TEXTE
 
     # Cellule de sélection de la station à afficher :
@@ -83,9 +99,23 @@ def graphes1(classeur: Workbook) -> None:
     ## La valeur "toutes" sera sa valeur par défaut :
     feuille["$G$2"].value = "toutes"
 
-    feuille.add_chart(bar_vertic_graph(Reference(classeur["semaines"], min_col=2, max_col=8, min_row=1, max_row=54),
-                                       Reference(classeur["semaines"], min_col=1, min_row=2, max_row=54),
-                                       titreX="Numéro de semaine"), "B3")
-    feuille.add_chart(bar_vertic_graph(Reference(classeur["echantillon"], min_col=2, max_col=8, min_row=1, max_row=51),
-                                       Reference(classeur["echantillon"], min_col=1, min_row=2, max_row=51),
-                                       pourcent=True), "B30")
+    feuille.add_chart(
+        bar_vertic_graph(
+            Reference(
+                classeur["semaines"], min_col=2, max_col=8, min_row=1, max_row=54
+            ),
+            Reference(classeur["semaines"], min_col=1, min_row=2, max_row=54),
+            titreX="Numéro de semaine",
+        ),
+        "B3",
+    )
+    feuille.add_chart(
+        bar_vertic_graph(
+            Reference(
+                classeur["echantillon"], min_col=2, max_col=8, min_row=1, max_row=51
+            ),
+            Reference(classeur["echantillon"], min_col=1, min_row=2, max_row=51),
+            pourcent=True,
+        ),
+        "B30",
+    )

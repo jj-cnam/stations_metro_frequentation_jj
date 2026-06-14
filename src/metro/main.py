@@ -19,7 +19,7 @@ from metro.graphes2 import graphes2
 URL = "https://minio.lab.sspcloud.fr/jacquemmoz/partage/data_traitee.xlsx"
 
 
-def dataset(source:Worksheet, cible:Workbook):
+def dataset(source: Worksheet, cible: Workbook):
     """
     Copie les données sources dans une feuille "DATA" du classeur cible
     :param source: classeur des données sources
@@ -40,7 +40,9 @@ def orchestre(entree: BytesIO, sortie: str):
     :param sortie: chemin du fichier de sortie du classeur
     """
     cible = Workbook()
-    cible.remove(cible.worksheets[0])  # efface la feuille créée par défaut avec le classeur
+    cible.remove(
+        cible.worksheets[0]
+    )  # efface la feuille créée par défaut avec le classeur
 
     # Feuille 'DATA' (import des données)
     print(str(datetime.now()), "Import des données...")
@@ -72,12 +74,22 @@ def orchestre(entree: BytesIO, sortie: str):
 def main():
     parser = argparse.ArgumentParser(
         description="Génère le tableau de bord de la fréquentation des stations de métro parisien",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
     entree_args = parser.add_mutually_exclusive_group()
-    entree_args.add_argument("-i", "--input", type=str, help="chemin du fichier d'entrée")
-    entree_args.add_argument("-u", "--url", type=str, help="url du fichier d'entrée", default=URL)
+    entree_args.add_argument(
+        "-i", "--input", type=str, help="chemin du fichier d'entrée"
+    )
+    entree_args.add_argument(
+        "-u", "--url", type=str, help="url du fichier d'entrée", default=URL
+    )
     parser.add_argument(
-        "-o", "--output", type=str, help="chemin du fichier de sortie", default="sortie.xlsx")
+        "-o",
+        "--output",
+        type=str,
+        help="chemin du fichier de sortie",
+        default="sortie.xlsx",
+    )
     args = parser.parse_args()
     if args.input:
         with open(args.input, "rb") as fichier:
