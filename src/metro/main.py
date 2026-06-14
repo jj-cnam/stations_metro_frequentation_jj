@@ -1,8 +1,7 @@
 #!/usr/bin/env -S uv run --script
 
 """Script d'entrée/sortie.
-Recopie la première feuille du classeur d'entrée dans la première feuille ('DATA') du classeur de sortie
-et orchestre la génération du classeur de sortie."""
+Recopie la première feuille du classeur d'entrée dans la première feuille ('DATA') du classeur de sortie."""
 
 from datetime import datetime
 from openpyxl import load_workbook, Workbook
