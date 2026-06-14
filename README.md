@@ -143,11 +143,11 @@ Elle contient une colonne présentant l'ensemble des stations de métro, suivi d
 
 *Elle contient également la liste des différents types de titres de transport, qui n'est pas utilisée mais est présente pour permettre de futures évolutions du tableau de bord.*
 
-*Cette feuille est statique, générée directement en Python, donc sans formules Excel. Le recours à la formule =UNIQUE() e été testé (avec calcul de la plage dynamique de l'ArrayFormula) mais non retenu : voir #6 .*
+*Cette feuille est pour l'instant statique, générée directement en Python, donc sans formules Excel (voir #6).*
 
 ### Feuille `jours`
 
-*Cette feuille a été calculée lors du prototypage du tableau de bord, avant que l'on décide d'une granulométrie hebdomadaire. Elle est maintenue dans le classeur pour de futuregit branchs évolutions. Elle permet également d'illustrer la logique des calculs dans le classeur.*
+*Cette feuille a été calculée lors du prototypage du tableau de bord, avant que l'on décide d'une granulométrie hebdomadaire. Elle est maintenue dans le classeur pour de futures évolutions. Elle permet également d'illustrer la logique des calculs dans le classeur.*
 
 Cette feuille pivote des données de `DATA` selon la date des jours, en ajoutant les nombres de validations, en utilisant un ensemble de formule de la forme :
 
